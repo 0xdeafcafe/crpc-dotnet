@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Crpc.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

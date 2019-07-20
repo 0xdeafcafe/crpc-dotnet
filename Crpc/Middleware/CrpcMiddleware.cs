@@ -6,6 +6,7 @@ using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Crpc.Exceptions;
 using Crpc.Registration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

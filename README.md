@@ -25,10 +25,7 @@ public class Startup
 	{
 		services.Configure<Config>(Configuration);
 
-		// Register the RPC server layer to it's service interface
-		services.AddSingleton<IService, RPC>();
-
-		services.AddCrpc(opts =>
+		services.AddCrpc<IService, RPC>(opts =>
 		{
 			opts.InternalKeys = Configuration.GetValue<string[]>("InternalKeys");
 		});
@@ -37,6 +34,9 @@ public class Startup
 	public void Configure(IApplicationBuilder app)
 	{
 		app.UseCrpc("/1", opts => {
+			// What kind of auth do we want?
+			opts.Authentication = AuthenticationType.AllowInternalAuthentication;
+
 			// Register the server type - needed for reflection later
 			opts.RegisterServer<RPC>();
 

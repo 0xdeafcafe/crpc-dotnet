@@ -1,10 +1,27 @@
 # CRPC
 
+[![Nuget Version](https://img.shields.io/nuget/v/crpc.svg?style=flat)](//www.nuget.org/packages/crpc)
+[![Build Status](https://img.shields.io/travis/0xdeafcafe/crpc-dotnet.svg?style=flat)](//travis-ci.org/0xdeafcafe/crpc-dotnet)
+
 Simple plug-and-play CRPC middleware for ASP.NET core. Dependable and Injectable.
 
 ## About
 
 CRPC (Cuvva-RPC) is a framework we developed at Cuvva for building out small-service architecture. This package is compatible but isn't feature complete, more about that below.
+
+## Installation
+
+Available on [NuGet](https://nuget.org/packages/crpc).
+
+Visual Studio:
+```powershell
+PM> Install-Package Crpc
+```
+
+.Net Core CLI:
+```bash
+$ dotnet add package crpc
+```
 
 ## Usage
 

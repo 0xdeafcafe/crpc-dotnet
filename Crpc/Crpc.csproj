@@ -4,7 +4,20 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>Crpc</RootNamespace>
     <RuntimeIdentifiers>osx-x64;alpine-x64;linux-x64;win-x64</RuntimeIdentifiers>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <PackageId>Crpc</PackageId>
+    <Title>Crpc</Title>
+    <Description>
+      Simple plug-and-play CRPC middleware for ASP.NET core. Dependable and Injectable.
+    </Description>
+    <Version>0.0.1</Version>
+    <Authors>0xdeafcafe</Authors>
+    <RepositoryUrl>http://github.com/0xdeafcafe/crpc-dotnet</RepositoryUrl>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="cuvva-ksuid" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />

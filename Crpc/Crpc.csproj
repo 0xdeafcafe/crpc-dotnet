@@ -13,9 +13,12 @@
     <Description>
       Simple plug-and-play CRPC middleware for ASP.NET core. Dependable and Injectable.
     </Description>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>0xdeafcafe</Authors>
     <RepositoryUrl>http://github.com/0xdeafcafe/crpc-dotnet</RepositoryUrl>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <IncludeSource>true</IncludeSource>
   </PropertyGroup>
 
   <ItemGroup>

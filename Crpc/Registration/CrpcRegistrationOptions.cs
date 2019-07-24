@@ -42,18 +42,19 @@ namespace Crpc.Registration
 
 			validateDate(date);
 			validateEndpoint(method);
+
 			FieldInfo schema;
+			Dictionary<string, CrpcVersionRegistration> registration;
 			var methodInfo = ServerType.GetMethod(internalMethodName);
 			var responseType = methodInfo.ReturnType;
 			var requestTypes = methodInfo.GetParameters();
 
-			if (methodInfo.GetParameters().Length != 1)
-				throw new Exception("methods can only have 1 parameter");
+			if (requestTypes.Length > 1)
+				throw new Exception($"{internalMethodName} has too many arguments");
 
 			if (method == null)
 				throw new Exception("no method could be found with that name");
 
-			Dictionary<string, CrpcVersionRegistration> registration;
 			if (Registrations.ContainsKey(method))
 				registration = Registrations[method];
 			else
@@ -68,9 +69,6 @@ namespace Crpc.Registration
 				Method = methodInfo,
 				Date = date,
 			};
-
-			if (requestTypes.Length > 1)
-				throw new Exception($"{internalMethodName} has too many arguments");
 
 			// Request types are optional, and we only need to load the schema in if
 			// a request as a payload.

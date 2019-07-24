@@ -45,7 +45,7 @@ namespace Crpc.Registration
 			FieldInfo schema;
 			var methodInfo = ServerType.GetMethod(internalMethodName);
 			var responseType = methodInfo.ReturnType;
-			var requestType = methodInfo.GetParameters()[0];
+			var requestTypes = methodInfo.GetParameters();
 
 			if (methodInfo.GetParameters().Length != 1)
 				throw new Exception("methods can only have 1 parameter");
@@ -69,9 +69,12 @@ namespace Crpc.Registration
 				Date = date,
 			};
 
+			if (requestTypes.Length > 1)
+				throw new Exception($"{internalMethodName} has too many arguments");
+
 			// Request types are optional, and we only need to load the schema in if
 			// a request as a payload.
-			if (requestType != null)
+			if (requestTypes.Length != 0)
 			{
 				schema = ServerType.GetField($"{internalMethodName}Schema");
 
@@ -82,9 +85,9 @@ namespace Crpc.Registration
 					throw new Exception("schema must be static");
 
 				if (schema.FieldType != typeof(string))
-					throw new Exception("schema field must be a string");
+					throw new Exception("schema must be a string");
 
-				version.RequestType = requestType.ParameterType;
+				version.RequestType = requestTypes[0].ParameterType;
 				version.Schema = JSchema.Parse(schema.GetValue(null) as string);
 			}
 

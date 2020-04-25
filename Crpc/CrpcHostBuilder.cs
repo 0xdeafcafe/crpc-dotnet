@@ -1,6 +1,9 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Crpc
@@ -9,11 +12,16 @@ namespace Crpc
 	{
 		internal CrpcHost() { }
 
-		public static IWebHostBuilder CreateCrpcHost<T>()
+		public static IHostBuilder CreateCrpcHost<T>()
 			where T : class
 		{
-			return new WebHostBuilder()
-				.UseKestrel()
+			return new HostBuilder()
+				.ConfigureWebHostDefaults(builder =>
+				{
+					builder.UseKestrel();
+					builder.UseStartup<T>();
+					builder.UseSentry();
+				})
 				.UseContentRoot(Directory.GetCurrentDirectory())
 				.ConfigureAppConfiguration((hostingContext, config) =>
 				{
@@ -37,9 +45,7 @@ namespace Crpc
 					logging.AddConsole();
 					logging.AddDebug();
 					logging.AddEventSourceLogger();
-				})
-				.UseStartup<T>()
-				.UseSentry();
+				});
 		}
 	}
 }

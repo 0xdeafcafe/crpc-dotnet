@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Crpc.Attributes;
 using Newtonsoft.Json.Schema;
+using Microsoft.AspNetCore.Http;
 
 namespace Crpc.Registration
 {
@@ -12,99 +15,110 @@ namespace Crpc.Registration
 		AllowInternalAuthentication,
 	}
 
-	public class CrpcRegistrationOptions
+	public class CrpcRegistrationOptions<T>
+		where T : class
 	{
 		private static readonly Regex _endpointRegex = new Regex(@"[a-z]{1}[a-z0-9_]+[a-z]{1}", RegexOptions.Compiled);
 
-		internal Type ServerType { get; set; }
+		internal T ServerInstance { get; set; }
 
 		internal Dictionary<string, Dictionary<string, CrpcVersionRegistration>> Registrations { get; set; }
 
 		public AuthenticationType Authentication { get; set; }
 
-		/// <summary>
-		/// Registers the server type with the middleware.
-		/// </summary>
-		/// <typeparam name="T">The type of the server layer.</typeparam>
-		public void RegisterServer<T>()
+		public CrpcRegistrationOptions()
 		{
-			if (ServerType != null)
-				throw new InvalidOperationException("server type already registered");
-
-			ServerType = typeof(T);
 			Registrations = new Dictionary<string, Dictionary<string, CrpcVersionRegistration>>();
 		}
 
-		public void RegisterMethod(string method, string internalMethodName, string date)
+		public void Register(string endpoint, string version, Func<HttpContext, Task> method)
 		{
-			if (ServerType == null)
-				throw new NullReferenceException("server type must be registered first");
+			Func<HttpContext, object, Task<object>> mock = (ctx, obj) =>
+			{
+				method.Invoke(ctx);
 
-			validateDate(date);
-			validateEndpoint(method);
+				return default(Task<object>);
+			};
 
-			FieldInfo schema;
+			Register(endpoint, version, mock);
+		}
+
+		public void Register<TReq>(string endpoint, string version, Func<HttpContext, TReq, Task> method)
+		{
+			Func<HttpContext, TReq, Task<object>> mock = (ctx, obj) =>
+			{
+				method.Invoke(ctx, obj);
+
+				return default(Task<object>);
+			};
+
+			Register(endpoint, version, mock);
+		}
+
+		public void Register<TRes>(string endpoint, string version, Func<HttpContext, Task<TRes>> method)
+		{
+			Func<HttpContext, object, Task<TRes>> mock = (ctx, obj) => method.Invoke(ctx);
+
+			Register(endpoint, version, mock);
+		}
+
+		public void Register<TReq, TRes>(string endpoint, string version, Func<HttpContext, TReq, Task<TRes>> method)
+		{
+			ValidateVersion(version);
+			ValidateEndpoint(endpoint);
+
 			Dictionary<string, CrpcVersionRegistration> registration;
-			var methodInfo = ServerType.GetMethod(internalMethodName);
+			var methodInfo = method.GetMethodInfo();
 			var responseType = methodInfo.ReturnType;
 			var requestTypes = methodInfo.GetParameters();
 
-			if (requestTypes.Length > 1)
-				throw new Exception($"{internalMethodName} has too many arguments");
+			if (requestTypes.Length > 2)
+				throw new InvalidOperationException($"The endpoint {version}/{endpoint} has too many arguments");
 
-			if (method == null)
-				throw new Exception("no method could be found with that name");
-
-			if (Registrations.ContainsKey(method))
-				registration = Registrations[method];
+			if (Registrations.ContainsKey(endpoint))
+				registration = Registrations[endpoint];
 			else
 				registration = new Dictionary<string, CrpcVersionRegistration>();
 
-			if (registration.ContainsKey(date))
-				throw new Exception("duplicate date version found");
+			if (registration.ContainsKey(version))
+				throw new ArgumentException($"Duplicate version found for {version}/{endpoint}", nameof(version));
 
-			var version = new CrpcVersionRegistration
+			var registrationVersion = new CrpcVersionRegistration
 			{
 				ResponseType = responseType,
-				Method = methodInfo,
-				Date = date,
+				MethodInfo = methodInfo,
+				Version = version,
 			};
 
 			// Request types are optional, and we only need to load the schema in if
 			// a request as a payload.
 			if (requestTypes.Length != 0)
 			{
-				schema = ServerType.GetField($"{internalMethodName}Schema");
+				var schemaAttribute = methodInfo.GetCustomAttribute(typeof(CrpcJsonSchema)) as CrpcJsonSchema;
 
-				if (schema == null)
-					throw new Exception("no schema could be found");
+				if (schemaAttribute == null)
+					throw new Exception($"CrpcJsonSchema attribute not set on {version}/{endpoint}");
 
-				if (!schema.IsStatic)
-					throw new Exception("schema must be static");
-
-				if (schema.FieldType != typeof(string))
-					throw new Exception("schema must be a string");
-
-				version.RequestType = requestTypes[0].ParameterType;
-				version.Schema = JSchema.Parse(schema.GetValue(null) as string);
+				registrationVersion.Schema = JSchema.Parse(schemaAttribute.Schema);
+				registrationVersion.RequestType = requestTypes[0].ParameterType;
 			}
 
-			registration.Add(date, version);
+			registration.Add(version, registrationVersion);
 
-			Registrations[method] = registration;
+			Registrations[endpoint] = registration;
 		}
 
 		/// <summary>
-		/// Validates the format of the input date. Dates have to be either formatted as
+		/// Validates the format of the input version. Versions are either formatted as
 		/// yyyy-MM-dd or be "preview".
 		/// </summary>
-		/// <param name="date">The date to validate.</param>
-		private void validateDate(string date)
+		/// <param name="version">The version to validate.</param>
+		private void ValidateVersion(string version)
 		{
-			if (date == "preview")
+			if (version == "preview")
 				return;
 
-			DateTime.ParseExact(date, "yyyy-MM-dd", null);
+			DateTime.ParseExact(version, "yyyy-MM-dd", null);
 		}
 
 		/// <summary>
@@ -113,7 +127,7 @@ namespace Crpc.Registration
 		/// with a letter.
 		/// </summary>
 		/// <param name="endpoint"></param>
-		private void validateEndpoint(string endpoint)
+		private void ValidateEndpoint(string endpoint)
 		{
 			if (!_endpointRegex.Match(endpoint).Success)
 				throw new FormatException("endpoint format incorrect");

@@ -8,9 +8,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Crpc.Exceptions;
 using Crpc.Registration;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
@@ -18,21 +18,22 @@ using Newtonsoft.Json.Serialization;
 
 namespace Crpc.Middleware
 {
-	public sealed class CrpcMiddleware : IMiddleware
+	public sealed class CrpcMiddleware<T> : IMiddleware
+		where T : class
 	{
 		private readonly Regex _urlRegex = new Regex(@"^/(?<date>\d{4}-\d{2}-\d{2}|latest|preview)/(?<method>[a-z\d_]+)$", RegexOptions.Compiled);
 
 		private readonly IServiceProvider _services;
-		private readonly IHostingEnvironment _environment;
+		private readonly IHostEnvironment _environment;
 		private readonly ILogger _logger;
 		private readonly MethodInfo _jsonDeserializeMethod;
 		private readonly JsonSerializerSettings _jsonSerializerSettings;
 		private readonly JsonSerializer _jsonSerializer;
 
 		private object _server;
-		private CrpcRegistrationOptions _registrationOptions;
+		private CrpcRegistrationOptions<T> _registrationOptions;
 
-		public CrpcMiddleware(IServiceProvider services, IHostingEnvironment environment, ILoggerFactory loggerFactory)
+		public CrpcMiddleware(IServiceProvider services, IHostEnvironment environment, ILoggerFactory loggerFactory)
 		{
 			if (services == null) throw new ArgumentNullException(nameof(services));
 			if (environment == null) throw new ArgumentNullException(nameof(environment));
@@ -40,7 +41,7 @@ namespace Crpc.Middleware
 
 			_services = services;
 			_environment = environment;
-			_logger = loggerFactory.CreateLogger(nameof(CrpcMiddleware));
+			_logger = loggerFactory.CreateLogger(nameof(CrpcMiddleware<T>));
 
 			// Do initial reflection setup
 			_jsonSerializerSettings = new JsonSerializerSettings
@@ -57,15 +58,22 @@ namespace Crpc.Middleware
 				.Single();
 		}
 
-		internal void SetRegistrationOptions(CrpcRegistrationOptions opts)
+		internal CrpcRegistrationOptions<T> SetRegistrationOptions(Action<CrpcRegistrationOptions<T>, T> opts)
 		{
 			if (_registrationOptions != null)
-				throw new InvalidOperationException("registration options already set.");
+				throw new InvalidOperationException("Registration options already set.");
 
-			var svt = opts.ServerType;
+			var serverType = typeof(T);
+			var server = _services.GetService(serverType) ?? ActivatorUtilities.CreateInstance(_services, serverType);
+			var options = new CrpcRegistrationOptions<T>();
 
-			_registrationOptions = opts;
-			_server = _services.GetService(svt) ?? ActivatorUtilities.CreateInstance(_services, svt);
+			opts.Invoke(options, server as T);
+			Console.WriteLine("test");
+
+			_registrationOptions = options;
+			_server = server;
+
+			return options;
 		}
 
 		public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -116,7 +124,8 @@ namespace Crpc.Middleware
 			}
 
 			var request = readRequest(context, version.Value);
-			var response = await (dynamic) version.Value.Method.Invoke(_server, new object[] { request });
+			var requestArguments = request == null ? new object[] { } : new object[] { request };
+			var response = await (dynamic) version.Value.MethodInfo.Invoke(_server, requestArguments);
 
 			if (response == null && version.Value.ResponseType != null)
 			{

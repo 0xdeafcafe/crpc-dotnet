@@ -24,7 +24,6 @@ namespace Crpc.Middleware
 		private readonly Regex _urlRegex = new Regex(@"^/(?<date>\d{4}-\d{2}-\d{2}|latest|preview)/(?<method>[a-z\d_]+)$", RegexOptions.Compiled);
 
 		private readonly IServiceProvider _services;
-		private readonly IHostEnvironment _environment;
 		private readonly ILogger _logger;
 		private readonly MethodInfo _jsonDeserializeMethod;
 		private readonly JsonSerializerSettings _jsonSerializerSettings;
@@ -33,14 +32,12 @@ namespace Crpc.Middleware
 		private object _server;
 		private CrpcRegistrationOptions<T> _registrationOptions;
 
-		public CrpcMiddleware(IServiceProvider services, IHostEnvironment environment, ILoggerFactory loggerFactory)
+		public CrpcMiddleware(IServiceProvider services, ILoggerFactory loggerFactory)
 		{
 			if (services == null) throw new ArgumentNullException(nameof(services));
-			if (environment == null) throw new ArgumentNullException(nameof(environment));
 			if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
 
 			_services = services;
-			_environment = environment;
 			_logger = loggerFactory.CreateLogger(nameof(CrpcMiddleware<T>));
 
 			// Do initial reflection setup
@@ -61,7 +58,7 @@ namespace Crpc.Middleware
 		internal CrpcRegistrationOptions<T> SetRegistrationOptions(Action<CrpcRegistrationOptions<T>, T> opts)
 		{
 			if (_registrationOptions != null)
-				throw new InvalidOperationException("Registration options already set.");
+				throw new InvalidOperationException("Registration options already set");
 
 			var serverType = typeof(T);
 			var server = _services.GetService(serverType) ?? ActivatorUtilities.CreateInstance(_services, serverType);

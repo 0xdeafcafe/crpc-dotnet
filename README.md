@@ -82,6 +82,7 @@ public class Startup
 
 	public void Configure(IApplicationBuilder app)
 	{
+		app.UseCrpcHealthCheck();
 		app.UseCrpc<RpcServer>("/1", (opts, rpc) => {
 			// What kind of auth do we want?
 			opts.Authentication = AuthenticationType.AllowInternalAuthentication;

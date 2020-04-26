@@ -17,7 +17,7 @@ namespace Crpc.Registration
 	public class CrpcRegistrationOptions<T>
 		where T : class
 	{
-		private static readonly Regex _endpointRegex = new Regex(@"[a-z]{1}[a-z0-9_]+[a-z]{1}", RegexOptions.Compiled);
+		private static readonly Regex _endpointRegex = new Regex(@"^[a-z]{1}[a-z0-9_]+[a-z]{1}$", RegexOptions.Compiled);
 
 		internal T ServerInstance { get; set; }
 

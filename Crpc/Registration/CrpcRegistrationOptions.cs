@@ -31,7 +31,7 @@ namespace Crpc.Registration
 			Registrations = new Dictionary<string, Dictionary<string, CrpcVersionRegistration>>();
 		}
 
-		public void Register(string endpoint, string version, Func<HttpContext, Task> method)
+		public void Register(string endpoint, string version, Func<HttpContext, Task> method, string schema = null)
 		{
 			Func<HttpContext, object, Task<object>> mock = (ctx, obj) =>
 			{
@@ -40,10 +40,10 @@ namespace Crpc.Registration
 				return default(Task<object>);
 			};
 
-			Register(endpoint, version, mock);
+			Register(endpoint, version, mock, schema);
 		}
 
-		public void Register<TReq>(string endpoint, string version, Func<HttpContext, TReq, Task> method)
+		public void Register<TReq>(string endpoint, string version, Func<HttpContext, TReq, Task> method, string schema = null)
 		{
 			Func<HttpContext, TReq, Task<object>> mock = (ctx, obj) =>
 			{
@@ -52,17 +52,17 @@ namespace Crpc.Registration
 				return default(Task<object>);
 			};
 
-			Register(endpoint, version, mock);
+			Register(endpoint, version, mock, schema);
 		}
 
-		public void Register<TRes>(string endpoint, string version, Func<HttpContext, Task<TRes>> method)
+		public void Register<TRes>(string endpoint, string version, Func<HttpContext, Task<TRes>> method, string schema = null)
 		{
 			Func<HttpContext, object, Task<TRes>> mock = (ctx, obj) => method.Invoke(ctx);
 
-			Register(endpoint, version, mock);
+			Register(endpoint, version, mock, schema);
 		}
 
-		public void Register<TReq, TRes>(string endpoint, string version, Func<HttpContext, TReq, Task<TRes>> method)
+		public void Register<TReq, TRes>(string endpoint, string version, Func<HttpContext, TReq, Task<TRes>> method, string schema = null)
 		{
 			ValidateVersion(version);
 			ValidateEndpoint(endpoint);
@@ -92,14 +92,12 @@ namespace Crpc.Registration
 
 			// Request types are optional, and we only need to load the schema in if
 			// a request as a payload.
-			if (requestTypes.Length != 0)
+			if (requestTypes.Length != 1)
 			{
-				var schemaAttribute = methodInfo.GetCustomAttribute(typeof(CrpcJsonSchema)) as CrpcJsonSchema;
+				if (schema == null)
+					throw new Exception($"No schema specified for {version}/{endpoint}");
 
-				if (schemaAttribute == null)
-					throw new Exception($"CrpcJsonSchema attribute not set on {version}/{endpoint}");
-
-				registrationVersion.Schema = JSchema.Parse(schemaAttribute.Schema);
+				registrationVersion.Schema = JSchema.Parse(schema);
 				registrationVersion.RequestType = requestTypes[0].ParameterType;
 			}
 

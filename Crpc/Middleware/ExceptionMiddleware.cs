@@ -35,7 +35,7 @@ namespace Crpc.Middleware
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, ex.Message);
-				_sentry.CaptureException(ex);
+				_sentry?.CaptureException(ex);
 
 				var exception = ex as CrpcException;
 				if (!(ex is CrpcException))

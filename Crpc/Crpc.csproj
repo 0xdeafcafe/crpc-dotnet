@@ -34,4 +34,14 @@
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.13" />
     <PackageReference Include="Sentry.AspNetCore" Version="2.1.1" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+    <_Parameter1>Crpc.Test</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

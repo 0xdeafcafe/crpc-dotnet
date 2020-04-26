@@ -35,7 +35,7 @@ namespace Crpc.Middleware
 		public async Task InvokeAsync(HttpContext context, RequestDelegate next)
 		{
 			if (!_authenticationType.HasValue)
-				throw new InvalidOperationException("authentication type not set");
+				throw new InvalidOperationException("Authentication type not set");
 
 			switch(_authenticationType.Value)
 			{

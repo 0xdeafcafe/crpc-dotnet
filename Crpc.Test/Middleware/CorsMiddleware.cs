@@ -1,13 +1,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Crpc.Exceptions;
 using Crpc.Middleware;
-using Crpc.Registration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
@@ -37,8 +34,6 @@ namespace Crpc.Test.Middleware
 				Assert.Equal("*", GetFirstHeaderValue(ctx.Response.Headers, "Access-Control-Allow-Origin"));
 				Assert.Equal(headers, GetHeaderValues(ctx.Response.Headers, "Access-Control-Allow-Headers"));
 				Assert.Equal("POST", GetFirstHeaderValue(ctx.Response.Headers, "Access-Control-Allow-Methods"));
-
-				Console.WriteLine(GetFirstHeaderValue(ctx.Response.Headers, "Access-Control-Allow-Headers"));
 
 				return Task.CompletedTask;
 			});

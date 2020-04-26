@@ -53,7 +53,6 @@ namespace Crpc.Test.Middleware
 
 			middleware.SetAuthentication(AuthenticationType.AllowInternalAuthentication);
 			context.Request.Headers.Add("Authorization", $"bearer {requestKey}");
-			context.Response.Body = new MemoryStream();
 
 			if (valid)
 			{
@@ -86,7 +85,6 @@ namespace Crpc.Test.Middleware
 
 			middleware.SetAuthentication(AuthenticationType.UnsafeNoAuthentication);
 			context.Request.Headers.Add("Authorization", $"bearer {key}");
-			context.Response.Body = new MemoryStream();
 
 			await middleware.InvokeAsync(context, (ctx) => Task.CompletedTask);
 		}

@@ -41,7 +41,7 @@
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-    <_Parameter1>Crpc.Test</_Parameter1>
+    <_Parameter1>Crpc.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
 </Project>

@@ -68,7 +68,6 @@ namespace Crpc.Middleware
 			var options = new CrpcRegistrationOptions<T>();
 
 			opts.Invoke(options, server as T);
-			Console.WriteLine("test");
 
 			_registrationOptions = options;
 			_server = server;
@@ -81,7 +80,7 @@ namespace Crpc.Middleware
 			if (context.Request.Method != "POST")
 				throw new CrpcException(CrpcCodes.MethodNotAllowed);
 
-			ensureAcceptIsAllowed(context);
+			EnsureAcceptIsAllowed(context);
 
 			var match = _urlRegex.Match(context.Request.Path.ToUriComponent());
 			if (match.Groups.Count != 3)
@@ -123,7 +122,7 @@ namespace Crpc.Middleware
 					break;
 			}
 
-			var request = readRequest(context, version.Value);
+			var request = ReadRequest(context, version.Value);
 			var requestArguments = request == null ? new object[] { } : new object[] { request };
 			var response = await (dynamic) version.Value.MethodInfo.Invoke(_server, requestArguments);
 
@@ -139,16 +138,19 @@ namespace Crpc.Middleware
 			if (response == null)
 			{
 				context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
 				return;
 			}
 
 			string json = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+
 			context.Response.StatusCode = (int)HttpStatusCode.OK;
 			context.Response.ContentType = "application/json; charset=utf-8";
+
 			await context.Response.WriteAsync(json);
 		}
 
-		private void ensureAcceptIsAllowed(HttpContext context)
+		private void EnsureAcceptIsAllowed(HttpContext context)
 		{
 			if (!context.Request.Headers.TryGetValue("Accept", out var accept))
 				return;
@@ -157,7 +159,7 @@ namespace Crpc.Middleware
 				throw new CrpcException(CrpcCodes.UnsupportedAccept);
 		}
 
-		private object readRequest(HttpContext context, CrpcVersionRegistration version)
+		private object ReadRequest(HttpContext context, CrpcVersionRegistration version)
 		{
 			if (version.RequestType == null)
 				return null;

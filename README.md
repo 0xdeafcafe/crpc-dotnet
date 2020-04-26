@@ -86,7 +86,7 @@ public class Startup
 			// What kind of auth do we want?
 			opts.Authentication = AuthenticationType.AllowInternalAuthentication;
 
-			// Register a method. endpoint, method name, date (yyyy-mm-dd or "preview")
+			// Register a method. endpoint name, version (yyyy-mm-dd or "preview"), rpc method, and optionally the json schema string
 			opts.Register<string>("get_name", "2020-04-26", rpc.GetName);
 		});
 	}

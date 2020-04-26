@@ -15,16 +15,13 @@ namespace Microsoft.AspNetCore.Builder
 			if (app == null) throw new ArgumentNullException(nameof(app));
 			if (opts == null) throw new ArgumentNullException(nameof(opts));
 
-			#pragma warning disable CS1998
-			app.Map("/system/health", builder => {
-				builder.Run(async context =>
-				{
-					context.Response.StatusCode = (int)HttpStatusCode.NoContent;
-				});
-			});
-			#pragma warning restore CS1998
+			// Set the registration options on the CrpcMiddleware singleton
+			var crpcMiddleware = app.ApplicationServices.GetService(typeof(CrpcMiddleware<T>)) as CrpcMiddleware<T>;
+			var options = crpcMiddleware.SetRegistrationOptions(opts);
 
-			SetupMiddlewares(app, opts);
+			// Set the authentication type on the AuthMiddleware singleton
+			var authMiddleware = app.ApplicationServices.GetService(typeof(AuthMiddleware)) as AuthMiddleware;
+			authMiddleware.SetAuthentication(options.Authentication);
 
 			app.Map(baseUrl, builder =>
 			{
@@ -37,16 +34,18 @@ namespace Microsoft.AspNetCore.Builder
 			return app;
 		}
 
-		private static void SetupMiddlewares<T>(IApplicationBuilder app, Action<CrpcRegistrationOptions<T>, T> opts)
-			where T : class
+		public static IApplicationBuilder UseCrpcHealthCheck(this IApplicationBuilder app)
 		{
-			// Set the registration options on the CrpcMiddleware singleton
-			var crpcMiddleware = app.ApplicationServices.GetService(typeof(CrpcMiddleware<T>)) as CrpcMiddleware<T>;
-			var options = crpcMiddleware.SetRegistrationOptions(opts);
+			#pragma warning disable CS1998
+			app.Map("/system/health", builder => {
+				builder.Run(async context =>
+				{
+					context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+				});
+			});
+			#pragma warning restore CS1998
 
-			// Set the authentication type on the AuthMiddleware singleton
-			var authMiddleware = app.ApplicationServices.GetService(typeof(AuthMiddleware)) as AuthMiddleware;
-			authMiddleware.SetAuthentication(options.Authentication);
+			return app;
 		}
 	}
 }

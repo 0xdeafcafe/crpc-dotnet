@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crpc", "Crpc\Crpc.csproj", "{DCC2840E-AFA6-474D-B1A4-A63E9EF97BB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crpc.Test", "Crpc.Test\Crpc.Test.csproj", "{88646B3F-C0B8-4506-B170-A28B4C44E012}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crpc.Tests", "Crpc.Tests\Crpc.Tests.csproj", "{88646B3F-C0B8-4506-B170-A28B4C44E012}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

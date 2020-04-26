@@ -13,7 +13,7 @@ using NSubstitute;
 using Sentry;
 using Xunit;
 
-namespace Crpc.Test.Middleware
+namespace Crpc.Tests.Middleware
 {
 	public class ExceptionMiddlewareTests
 	{

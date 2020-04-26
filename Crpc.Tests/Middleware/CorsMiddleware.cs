@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
-namespace Crpc.Test.Middleware
+namespace Crpc.Tests.Middleware
 {
 	public class CorsMiddlewareTests
 	{

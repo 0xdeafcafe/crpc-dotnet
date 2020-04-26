@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Crpc.Test.Middleware
+namespace Crpc.Tests.Middleware
 {
 	public class AuthMiddlewareTests
 	{

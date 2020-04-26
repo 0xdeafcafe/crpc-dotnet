@@ -1,3 +1,4 @@
 # .NET stuff
 obj/
 bin/
+TestResults/

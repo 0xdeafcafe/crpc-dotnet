@@ -30,44 +30,32 @@ namespace Crpc.Registration
 			Registrations = new Dictionary<string, Dictionary<string, CrpcVersionRegistration>>();
 		}
 
-		public void Register(string endpoint, string version, Func<HttpContext, Task> method, string schema = null)
+		public void Register(string endpoint, string version, Func<HttpContext, Task> method)
 		{
-			Func<HttpContext, object, Task<object>> mock = (ctx, obj) =>
-			{
-				method.Invoke(ctx);
-
-				return default(Task<object>);
-			};
-
-			Register(endpoint, version, mock, schema);
+			MethodRegister(endpoint, version, method.GetMethodInfo());
 		}
 
-		public void Register<TReq>(string endpoint, string version, Func<HttpContext, TReq, Task> method, string schema = null)
+		public void Register<TReq>(string endpoint, string version, Func<HttpContext, TReq, Task> method, string schema)
 		{
-			Func<HttpContext, TReq, Task<object>> mock = (ctx, obj) =>
-			{
-				method.Invoke(ctx, obj);
-
-				return default(Task<object>);
-			};
-
-			Register(endpoint, version, mock, schema);
+			MethodRegister(endpoint, version, method.GetMethodInfo(), schema);
 		}
 
-		public void Register<TRes>(string endpoint, string version, Func<HttpContext, Task<TRes>> method, string schema = null)
+		public void Register<TRes>(string endpoint, string version, Func<HttpContext, Task<TRes>> method)
 		{
-			Func<HttpContext, object, Task<TRes>> mock = (ctx, obj) => method.Invoke(ctx);
-
-			Register(endpoint, version, mock, schema);
+			MethodRegister(endpoint, version, method.GetMethodInfo());
 		}
 
-		public void Register<TReq, TRes>(string endpoint, string version, Func<HttpContext, TReq, Task<TRes>> method, string schema = null)
+		public void Register<TReq, TRes>(string endpoint, string version, Func<HttpContext, TReq, Task<TRes>> method, string schema)
+		{
+			MethodRegister(endpoint, version, method.GetMethodInfo(), schema);
+		}
+
+		internal void MethodRegister(string endpoint, string version, MethodInfo methodInfo, string schema = null)
 		{
 			ValidateVersion(version);
 			ValidateEndpoint(endpoint);
 
 			Dictionary<string, CrpcVersionRegistration> registration;
-			var methodInfo = method.GetMethodInfo();
 			var responseType = methodInfo.ReturnType;
 			var requestTypes = methodInfo.GetParameters();
 
@@ -91,7 +79,8 @@ namespace Crpc.Registration
 
 			// Request types are optional, and we only need to load the schema in if
 			// a request as a payload.
-			if (requestTypes.Length != 1)
+			Console.WriteLine(requestTypes.Length);
+			if (requestTypes.Length > 1)
 			{
 				if (schema == null)
 					throw new Exception($"No schema specified for {version}/{endpoint}");
@@ -110,7 +99,7 @@ namespace Crpc.Registration
 		/// yyyy-MM-dd or be "preview".
 		/// </summary>
 		/// <param name="version">The version to validate.</param>
-		private void ValidateVersion(string version)
+		internal void ValidateVersion(string version)
 		{
 			if (version == "preview")
 				return;
@@ -124,7 +113,7 @@ namespace Crpc.Registration
 		/// with a letter.
 		/// </summary>
 		/// <param name="endpoint"></param>
-		private void ValidateEndpoint(string endpoint)
+		internal void ValidateEndpoint(string endpoint)
 		{
 			if (!_endpointRegex.Match(endpoint).Success)
 				throw new FormatException("endpoint format incorrect");

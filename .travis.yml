@@ -2,11 +2,9 @@ language: csharp
 mono: none
 dotnet: 3.1.201
 script:
-  - dotnet tool install coveralls.net --tool-path .tools
   - dotnet restore
   - dotnet build
-  - dotnet test --collect:"XPlat Code Coverage" --settings runsettings.xml
-  - ./.tools/csmacnz.Coveralls --opencover -i Crpc.Tests
+  - dotnet test --collect:"XPlat Code Coverage" --settings ./Crpc.Tests/runsettings.xml
 global:
   - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
   - DOTNET_CLI_TELEMETRY_OPTOUT=1

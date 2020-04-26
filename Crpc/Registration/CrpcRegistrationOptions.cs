@@ -79,7 +79,6 @@ namespace Crpc.Registration
 
 			// Request types are optional, and we only need to load the schema in if
 			// a request as a payload.
-			Console.WriteLine(requestTypes.Length);
 			if (requestTypes.Length > 1)
 			{
 				if (schema == null)

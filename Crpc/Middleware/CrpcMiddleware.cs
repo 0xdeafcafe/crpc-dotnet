@@ -29,7 +29,7 @@ namespace Crpc.Middleware
 		private readonly JsonSerializerSettings _jsonSerializerSettings;
 		private readonly JsonSerializer _jsonSerializer;
 
-		private object _server;
+		private T _server;
 		private CrpcRegistrationOptions<T> _registrationOptions;
 
 		public CrpcMiddleware(IServiceProvider services, ILoggerFactory loggerFactory)
@@ -67,14 +67,14 @@ namespace Crpc.Middleware
 			opts.Invoke(options, server as T);
 
 			_registrationOptions = options;
-			_server = server;
+			_server = server as T;
 
 			return options;
 		}
 
 		public async Task InvokeAsync(HttpContext context, RequestDelegate next)
 		{
-			if (context.Request.Method != "POST")
+			if (context.Request.Method.ToUpper() != "POST")
 				throw new CrpcException(CrpcCodes.MethodNotAllowed);
 
 			EnsureAcceptIsAllowed(context);
@@ -120,25 +120,24 @@ namespace Crpc.Middleware
 			}
 
 			var request = ReadRequest(context, version.Value);
-			var requestArguments = request == null ? new object[] { } : new object[] { request };
-			var response = await (dynamic) version.Value.MethodInfo.Invoke(_server, requestArguments);
+			object[] requestArguments;
 
-			if (response == null && version.Value.ResponseType != null)
+			if (request == null)
+				requestArguments = new object[] { context };
+			else
+				requestArguments = new object[] { context, request };
+
+			if (version.Value.ResponseType == null)
 			{
-				var ex = new CrpcException("missing_response");
+				var x = version.Value.MethodInfo.Invoke(_server, requestArguments);
+				var y = x as Task;
 
-				_logger.LogError(ex, "A response was expected but isn't present");
-
-				throw ex;
-			}
-
-			if (response == null)
-			{
 				context.Response.StatusCode = (int)HttpStatusCode.NoContent;
 
 				return;
 			}
 
+			var response = await (dynamic) version.Value.MethodInfo.Invoke(_server, requestArguments);
 			string json = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
 
 			context.Response.StatusCode = (int)HttpStatusCode.OK;
@@ -147,7 +146,7 @@ namespace Crpc.Middleware
 			await context.Response.WriteAsync(json);
 		}
 
-		private void EnsureAcceptIsAllowed(HttpContext context)
+		internal void EnsureAcceptIsAllowed(HttpContext context)
 		{
 			if (!context.Request.Headers.TryGetValue("Accept", out var accept))
 				return;
@@ -156,7 +155,7 @@ namespace Crpc.Middleware
 				throw new CrpcException(CrpcCodes.UnsupportedAccept);
 		}
 
-		private object ReadRequest(HttpContext context, CrpcVersionRegistration version)
+		internal object ReadRequest(HttpContext context, CrpcVersionRegistration version)
 		{
 			if (version.RequestType == null)
 				return null;

@@ -56,8 +56,12 @@ namespace Crpc.Registration
 			ValidateEndpoint(endpoint);
 
 			Dictionary<string, CrpcVersionRegistration> registration;
-			var responseType = methodInfo.ReturnType;
+			Type responseType = null;
 			var requestTypes = methodInfo.GetParameters();
+			var responseTask = methodInfo.ReturnType;
+
+			if (responseTask.GenericTypeArguments.Length > 0)
+				responseType = responseTask.GenericTypeArguments[0];
 
 			if (requestTypes.Length > 2)
 				throw new InvalidOperationException($"The endpoint {version}/{endpoint} has too many arguments");

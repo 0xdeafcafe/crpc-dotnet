@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Crpc
 {
@@ -12,19 +13,26 @@ namespace Crpc
 	{
 		internal CrpcHost() { }
 
-		public static IHostBuilder CreateCrpcHost<T>()
-			where T : class
+		public static IHostBuilder CreateCrpcHost<TS>(object defaultConfig = null)
+			where TS : class
 		{
 			return new HostBuilder()
 				.ConfigureWebHostDefaults(builder =>
 				{
 					builder.UseKestrel();
-					builder.UseStartup<T>();
+					builder.UseStartup<TS>();
 					builder.UseSentry();
 				})
 				.UseContentRoot(Directory.GetCurrentDirectory())
 				.ConfigureAppConfiguration((hostingContext, config) =>
 				{
+					if (defaultConfig != null)
+					{
+						var jsonStr = JsonConvert.SerializeObject(defaultConfig);
+
+						config.AddJsonObject(JsonConvert.DeserializeObject(jsonStr));
+					}
+
 					config.AddCrpcConfig(hostingContext.HostingEnvironment);
 				})
 				.ConfigureServices((hostingContext, services) =>

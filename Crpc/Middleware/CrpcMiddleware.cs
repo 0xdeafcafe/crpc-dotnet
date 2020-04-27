@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Crpc.Exceptions;
 using Crpc.Registration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -163,7 +165,7 @@ namespace Crpc.Middleware
 			if ((context.Request.ContentLength ?? 0) == 0)
 				throw new CrpcException("invalid_body");
 
-			using (var sr = new StreamReader(context.Request.Body))
+			using (var sr = new HttpRequestStreamReader(context.Request.Body, Encoding.UTF8))
 			using (var jtr = new JsonTextReader(sr))
 			using (var jsv = new JSchemaValidatingReader(jtr))
 			{

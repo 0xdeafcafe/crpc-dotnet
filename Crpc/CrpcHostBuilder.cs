@@ -22,6 +22,12 @@ namespace Crpc
 					builder.UseKestrel();
 					builder.UseStartup<TS>();
 					builder.UseSentry();
+
+					builder.ConfigureKestrel(o =>
+					{
+						// NOTE(afr): This should be removed in the future
+						o.AllowSynchronousIO = true;
+					});
 				})
 				.UseContentRoot(Directory.GetCurrentDirectory())
 				.ConfigureAppConfiguration((hostingContext, config) =>

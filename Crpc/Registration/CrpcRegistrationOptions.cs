@@ -89,7 +89,7 @@ namespace Crpc.Registration
 					throw new Exception($"No schema specified for {version}/{endpoint}");
 
 				registrationVersion.Schema = JSchema.Parse(schema);
-				registrationVersion.RequestType = requestTypes[0].ParameterType;
+				registrationVersion.RequestType = requestTypes[1].ParameterType;
 			}
 
 			registration.Add(version, registrationVersion);

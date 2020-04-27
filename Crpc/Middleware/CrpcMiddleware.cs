@@ -131,9 +131,7 @@ namespace Crpc.Middleware
 
 			if (version.Value.ResponseType == null)
 			{
-				var x = version.Value.MethodInfo.Invoke(_server, requestArguments);
-				var y = x as Task;
-
+				version.Value.MethodInfo.Invoke(_server, requestArguments);
 				context.Response.StatusCode = (int)HttpStatusCode.NoContent;
 
 				return;
